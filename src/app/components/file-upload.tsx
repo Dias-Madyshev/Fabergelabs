@@ -21,33 +21,52 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
       const file = acceptedFiles[0]
       if (!file) return
 
-      const fileText = await file.text()
+      console.log('Начинаем загрузку файла:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      })
 
       setUploadedFile(file)
       setError(null)
       onFileUpload(file)
 
-      // const formData = new FormData()
-      // formData.append('file', file)
+      const formData = new FormData()
+      formData.append('file', file)
 
       try {
+        console.log('Отправляем файл на сервер...')
         const res = await fetch('/api/parse', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text: fileText }),
+          body: formData,
         })
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ error: 'Ошибка сервера' }))
-          throw new Error(errorData.details || errorData.error || 'Ошибка при обработке файла')
+        console.log('Получен ответ от сервера:', {
+          status: res.status,
+          statusText: res.statusText,
+          contentType: res.headers.get('content-type'),
+        })
+
+        // Проверяем тип контента
+        const contentType = res.headers.get('content-type')
+        if (!contentType?.includes('application/json')) {
+          // Если это не JSON, выводим текст ответа для отладки
+          const textResponse = await res.text()
+          console.error('Получен неверный тип контента:', contentType)
+          console.error('Содержимое ответа:', textResponse)
+          throw new Error('Сервер вернул неверный формат данных')
         }
 
         const data = await res.json()
+        console.log('Ответ от сервера:', data)
+
+        if (!res.ok) {
+          throw new Error(data.details || data.error || 'Ошибка при обработке файла')
+        }
+
         setResponse(data.result || 'Нет ответа')
       } catch (error) {
-        console.error('Error:', error)
+        console.error('Ошибка при загрузке файла:', error)
         setError(error instanceof Error ? error.message : 'Произошла ошибка при обработке файла')
         setResponse('')
       }

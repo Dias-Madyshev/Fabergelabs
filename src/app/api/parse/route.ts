@@ -1,9 +1,83 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { promises as fs } from 'fs'
+import { v4 as uuidv4 } from 'uuid'
+import PDFParser from 'pdf2json'
+import mammoth from 'mammoth'
+
+// Функция для преобразования File в Buffer
+async function fileToBuffer(file: File) {
+  const arrayBuffer = await file.arrayBuffer()
+  return Buffer.from(arrayBuffer)
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { text } = await req.json()
+    const formData = await req.formData()
+    const file = formData.get('file')
 
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json({ error: 'Файл не найден' }, { status: 400 })
+    }
+
+    let text = ''
+    const fileName = uuidv4()
+
+    if (file.name.endsWith('.pdf')) {
+      // Для PDF используем pdf2json
+      const fileBuffer = Buffer.from(await file.arrayBuffer())
+      const tempFilePath = `/tmp/${fileName}.pdf`
+
+      try {
+        // Создаем временную директорию если её нет
+        await fs.mkdir('/tmp', { recursive: true })
+
+        // Сохраняем файл
+        await fs.writeFile(tempFilePath, fileBuffer)
+
+        // Парсим PDF
+        const pdfParser = new (PDFParser as any)(null, 1)
+
+        text = await new Promise((resolve, reject) => {
+          pdfParser.on('pdfParser_dataError', (errData: any) => reject(errData.parserError))
+
+          pdfParser.on('pdfParser_dataReady', () => {
+            const parsedText = (pdfParser as any).getRawTextContent()
+            resolve(parsedText)
+          })
+
+          pdfParser.loadPDF(tempFilePath)
+        })
+
+        // Удаляем временный файл
+        await fs.unlink(tempFilePath)
+      } catch (error) {
+        console.error('Ошибка при парсинге PDF:', error)
+        return NextResponse.json(
+          {
+            error: 'Ошибка при обработке PDF файла',
+            details: error instanceof Error ? error.message : 'Неизвестная ошибка',
+          },
+          { status: 500 },
+        )
+      }
+    } else if (file.name.endsWith('.docx')) {
+      // Для DOCX используем mammoth
+      const buffer = Buffer.from(await file.arrayBuffer())
+      const result = await mammoth.extractRawText({ buffer })
+      text = result.value
+    } else if (file.name.endsWith('.txt')) {
+      // Для текстовых файлов
+      const buffer = Buffer.from(await file.arrayBuffer())
+      text = buffer.toString('utf-8')
+    } else {
+      return NextResponse.json({ error: 'Неподдерживаемый формат файла' }, { status: 400 })
+    }
+
+    if (!text || text.trim().length === 0) {
+      return NextResponse.json({ error: 'Не удалось извлечь текст из файла' }, { status: 400 })
+    }
+
+    // Отправляем в API
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -11,22 +85,28 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'sonar', // можно заменить на другую модель
-        messages: [
-          {
-            role: 'user',
-            content: text,
-          },
-        ],
+        model: 'sonar',
+        messages: [{ role: 'user', content: text }],
       }),
     })
 
     const data = await response.json()
-    const answer = data.choices?.[0]?.message?.content || 'Нет ответа.'
 
-    return NextResponse.json({ result: answer })
-  } catch (error: any) {
-    console.error('Ошибка:', error?.response?.data || error.message)
-    return NextResponse.json({ error: 'Ошибка при обращении к Perplexity API' }, { status: 500 })
+    const apiResponse = NextResponse.json({
+      result: data.choices?.[0]?.message?.content || 'Нет ответа',
+      fileName: fileName,
+    })
+
+    apiResponse.headers.set('FileName', fileName)
+    return apiResponse
+  } catch (error) {
+    console.error('Ошибка:', error)
+    return NextResponse.json(
+      {
+        error: 'Ошибка при обработке файла',
+        details: error instanceof Error ? error.message : 'Неизвестная ошибка',
+      },
+      { status: 500 },
+    )
   }
 }
