@@ -21,17 +21,22 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
       const file = acceptedFiles[0]
       if (!file) return
 
+      const fileText = await file.text()
+
       setUploadedFile(file)
       setError(null)
       onFileUpload(file)
 
-      const formData = new FormData()
-      formData.append('file', file)
+      // const formData = new FormData()
+      // formData.append('file', file)
 
       try {
-        const res = await fetch('/api/upload', {
+        const res = await fetch('/api/parse', {
           method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: fileText }),
         })
 
         if (!res.ok) {
@@ -40,7 +45,7 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
         }
 
         const data = await res.json()
-        setResponse(data.message || 'Нет ответа')
+        setResponse(data.result || 'Нет ответа')
       } catch (error) {
         console.error('Error:', error)
         setError(error instanceof Error ? error.message : 'Произошла ошибка при обработке файла')
