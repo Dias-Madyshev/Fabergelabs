@@ -3,6 +3,7 @@ import { promises as fs } from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import PDFParser from 'pdf2json'
 import mammoth from 'mammoth'
+import { Prompt } from './Prompt'
 
 // Функция для преобразования File в Buffer
 async function fileToBuffer(file: File) {
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file')
 
     if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: 'Файл не найден' }, { status: 400 })
+      return NextResponse.json({ error: 'File not found' }, { status: 400 })
     }
 
     let text = ''
@@ -51,11 +52,11 @@ export async function POST(req: NextRequest) {
         // Удаляем временный файл
         await fs.unlink(tempFilePath)
       } catch (error) {
-        console.error('Ошибка при парсинге PDF:', error)
+        console.error('PDF parsing error:', error)
         return NextResponse.json(
           {
-            error: 'Ошибка при обработке PDF файла',
-            details: error instanceof Error ? error.message : 'Неизвестная ошибка',
+            error: 'Error processing PDF file',
+            details: error instanceof Error ? error.message : 'Unknown error',
           },
           { status: 500 },
         )
@@ -70,14 +71,14 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer())
       text = buffer.toString('utf-8')
     } else {
-      return NextResponse.json({ error: 'Неподдерживаемый формат файла' }, { status: 400 })
+      return NextResponse.json({ error: 'Unsupported file format' }, { status: 400 })
     }
 
     if (!text || text.trim().length === 0) {
-      return NextResponse.json({ error: 'Не удалось извлечь текст из файла' }, { status: 400 })
+      return NextResponse.json({ error: 'Could not extract text from file' }, { status: 400 })
     }
 
-    // Отправляем в API
+    // Отправляем в API с системным промптом
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -86,25 +87,28 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'sonar',
-        messages: [{ role: 'user', content: text }],
+        messages: [
+          { role: 'system', content: Prompt },
+          { role: 'user', content: text },
+        ],
       }),
     })
 
     const data = await response.json()
 
     const apiResponse = NextResponse.json({
-      result: data.choices?.[0]?.message?.content || 'Нет ответа',
+      result: data.choices?.[0]?.message?.content || 'No response',
       fileName: fileName,
     })
 
     apiResponse.headers.set('FileName', fileName)
     return apiResponse
   } catch (error) {
-    console.error('Ошибка:', error)
+    console.error('Error:', error)
     return NextResponse.json(
       {
-        error: 'Ошибка при обработке файла',
-        details: error instanceof Error ? error.message : 'Неизвестная ошибка',
+        error: 'Error processing file',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     )

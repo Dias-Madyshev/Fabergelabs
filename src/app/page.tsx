@@ -5,8 +5,6 @@ import { useState } from 'react'
 import { Header } from './components/header'
 import { FileUpload } from './components/file-upload'
 
-import AskForm from './components/AskForm'
-
 export default function HomePage() {
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -21,8 +19,6 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-12">
           <FileUpload onFileUpload={handleFileUpload} isProcessing={isProcessing} />
-
-          <AskForm />
         </div>
       </main>
     </div>
