@@ -8,8 +8,8 @@ import { FileUpload } from './components/file-upload'
 export default function HomePage() {
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleFileUpload = async () => {
-    setIsProcessing(true)
+  const handleFileUpload = (file: File | null) => {
+    setIsProcessing(!!file)
   }
 
   return (

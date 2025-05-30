@@ -2,13 +2,13 @@
 
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, File, CheckCircle, Loader2 } from 'lucide-react'
+import { Upload, File, CheckCircle, Loader2, Clock, CheckCheck, AlertCircle } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import ReactMarkdown from 'react-markdown'
 
 interface FileUploadProps {
-  onFileUpload: (file: File) => void
+  onFileUpload: (file: File | null) => void
   isProcessing: boolean
 }
 
@@ -16,12 +16,16 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [response, setResponse] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [status, setStatus] = useState<string>('')
+  const [processingTime, setProcessingTime] = useState<number | null>(null)
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0]
       if (!file) return
 
+      const startTime = Date.now()
+      setStatus('File received, preparing to upload...')
       console.log('Starting file upload:', {
         name: file.name,
         type: file.type,
@@ -36,12 +40,14 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
       formData.append('file', file)
 
       try {
+        setStatus('Uploading file to server...')
         console.log('Sending file to server...')
         const res = await fetch('/api/parse', {
           method: 'POST',
           body: formData,
         })
 
+        setStatus('Processing file on server...')
         const contentType = res.headers.get('content-type')
         console.log('Response content type:', contentType)
 
@@ -60,13 +66,19 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
           throw new Error(data.details || data.error || 'Error processing file')
         }
 
+        const endTime = Date.now()
+        setProcessingTime(endTime - startTime)
+        setStatus('Processing completed successfully!')
         setResponse(data.result || 'No response')
+        onFileUpload(null)
       } catch (error) {
         console.error('File upload error:', error)
         setError(
           error instanceof Error ? error.message : 'An error occurred while processing the file',
         )
         setResponse('')
+        setStatus('Error occurred during processing')
+        onFileUpload(null)
       }
     },
     [onFileUpload],
@@ -82,6 +94,7 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
       'application/vnd.ms-word': ['.doc', '.docx'],
     },
     multiple: false,
+    disabled: isProcessing,
   })
 
   return (
@@ -95,6 +108,7 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
         className={`
         relative rounded-xl overflow-hidden group
         ${isDragActive ? 'bg-blue-50' : 'bg-blue-50/50'} 
+        ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
         transition-all duration-300
         min-h-[200px] 
         max-h-[250px]
@@ -170,6 +184,7 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
                   </p>
                   <Button
                     variant="outline"
+                    disabled={isProcessing}
                     className="text-sm sm:text-base md:text-lg [@media(max-height:608px)]:text-xs px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 [@media(max-height:608px)]:py-1 [@media(max-height:608px)]:px-3 border-2 border-blue-300 text-blue-700 hover:bg-blue-100 transition-colors duration-300">
                     Select File
                   </Button>
@@ -187,8 +202,80 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
       )}
 
       {response && (
-        <div className="prose prose-blue prose-base md:prose-lg max-w-none mt-6 md:mt-8 p-6 md:p-8 bg-white rounded-lg shadow-md border border-gray-200">
-          <ReactMarkdown>{response}</ReactMarkdown>
+        <div className="space-y-4">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+            <div className="flex flex-col space-y-3">
+              {/* Статус */}
+              <div className="flex items-center space-x-2">
+                {status === 'Processing completed successfully!' ? (
+                  <CheckCheck className="w-5 h-5 text-green-500" />
+                ) : status.includes('Error') ? (
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                ) : (
+                  <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                )}
+                <span
+                  className={`text-sm font-medium ${
+                    status === 'Processing completed successfully!'
+                      ? 'text-green-700'
+                      : status.includes('Error')
+                      ? 'text-red-700'
+                      : 'text-blue-700'
+                  }`}>
+                  {status}
+                </span>
+              </div>
+
+              {/* Время обработки */}
+              {processingTime && (
+                <div className="flex items-center space-x-2 text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <div className="text-sm">
+                    <span className="font-medium">Processing Time: </span>
+                    <span className="font-mono bg-gray-50 px-2 py-0.5 rounded">
+                      {(processingTime / 1000).toFixed(2)}s
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Информация о файле */}
+              {uploadedFile && (
+                <div className="flex items-center space-x-2 text-gray-600">
+                  <File className="w-4 h-4" />
+                  <div className="text-sm">
+                    <span className="font-medium">File: </span>
+                    <span>{uploadedFile.name}</span>
+                    <span className="text-gray-400 ml-2">
+                      ({(uploadedFile.size / 1024).toFixed(1)} KB)
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="prose prose-blue prose-base md:prose-lg max-w-none mt-6 md:mt-8 p-6 md:p-8 bg-white rounded-lg shadow-md border border-gray-200">
+            <style jsx global>{`
+              .prose h1 {
+                font-size: 1.5em !important;
+                margin-top: 1.5em !important;
+              }
+              .prose h2 {
+                font-size: 1.3em !important;
+                margin-top: 1.4em !important;
+              }
+              .prose h3 {
+                font-size: 1.1em !important;
+                margin-top: 1.3em !important;
+              }
+              .prose h4 {
+                font-size: 1em !important;
+                margin-top: 1.2em !important;
+              }
+            `}</style>
+            <ReactMarkdown>{response}</ReactMarkdown>
+          </div>
         </div>
       )}
     </section>
