@@ -1,4 +1,5 @@
 import { FileText, Upload, MessageCircle } from 'lucide-react'
+import Image from 'next/image'
 
 export function Header() {
   return (
@@ -6,8 +7,15 @@ export function Header() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-blue-600 p-2 rounded-xl shadow-md">
-              <FileText className="h-8 w-8 text-white" />
+            <div className="bg-blue-600 p-2 rounded-xl shadow-md flex items-center">
+              <Image
+                src="/vercel.svg"
+                alt="Flask Logo"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+                priority
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Faberge Labs</h1>

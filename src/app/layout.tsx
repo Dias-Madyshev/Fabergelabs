@@ -8,18 +8,19 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Document Analysis',
-  description: 'Анализ документов с помощью AI',
+  title: 'Faberge Labs',
+  description: 'Intelligent Document Analysis',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={inter.className}>{children}</body>
     </html>
   )
 }
