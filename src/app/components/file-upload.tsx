@@ -2,84 +2,24 @@
 
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, File, CheckCircle, Loader2, Clock, CheckCheck, AlertCircle } from 'lucide-react'
+import { Upload, File, CheckCircle, Loader2 } from 'lucide-react'
 import { Button } from './ui/button'
-import { Card, CardContent } from './ui/card'
-import ReactMarkdown from 'react-markdown'
 
 interface FileUploadProps {
-  onFileUpload: (file: File | null) => void
+  onFileUpload: (file: File) => void
   isProcessing: boolean
 }
 
 export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
-  const [response, setResponse] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [status, setStatus] = useState<string>('')
-  const [processingTime, setProcessingTime] = useState<number | null>(null)
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0]
       if (!file) return
 
-      const startTime = Date.now()
-      setStatus('File received, preparing to upload...')
-      console.log('Starting file upload:', {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      })
-
       setUploadedFile(file)
-      setError(null)
       onFileUpload(file)
-
-      const formData = new FormData()
-      formData.append('file', file)
-
-      try {
-        setStatus('Uploading file to server...')
-        console.log('Sending file to server...')
-        const res = await fetch('/api/parse', {
-          method: 'POST',
-          body: formData,
-        })
-
-        setStatus('Processing file on server...')
-        const contentType = res.headers.get('content-type')
-        console.log('Response content type:', contentType)
-
-        let data
-        const text = await res.text()
-        console.log('Response text:', text)
-
-        try {
-          data = JSON.parse(text)
-        } catch (e) {
-          console.error('JSON parsing error:', e)
-          throw new Error('Server returned invalid data format')
-        }
-
-        if (!res.ok) {
-          throw new Error(data.details || data.error || 'Error processing file')
-        }
-
-        const endTime = Date.now()
-        setProcessingTime(endTime - startTime)
-        setStatus('Processing completed successfully!')
-        setResponse(data.result || 'No response')
-        onFileUpload(null)
-      } catch (error) {
-        console.error('File upload error:', error)
-        setError(
-          error instanceof Error ? error.message : 'An error occurred while processing the file',
-        )
-        setResponse('')
-        setStatus('Error occurred during processing')
-        onFileUpload(null)
-      }
     },
     [onFileUpload],
   )
@@ -98,16 +38,22 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
   })
 
   return (
-    <section id="upload" className="space-y-8 max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
-      <div className="text-center space-y-3">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Upload Document</h2>
-        <p className="text-lg md:text-xl text-gray-600">Supported formats: PDF, DOCX, and TXT</p>
+    <div className="relative space-y-8 pt-8">
+      <div className="relative text-center space-y-3 p-8 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl border border-indigo-50">
+        <div className="relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Genetic Document Analysis
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600">
+            Upload your documents for advanced analysis
+          </p>
+        </div>
       </div>
 
       <div
         className={`
-        relative rounded-xl overflow-hidden group
-        ${isDragActive ? 'bg-blue-50' : 'bg-blue-50/50'} 
+        relative rounded-2xl overflow-hidden group
+        ${isDragActive ? 'bg-white/90' : 'bg-white/80'} 
         ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
         transition-all duration-300
         min-h-[200px] 
@@ -118,14 +64,17 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
         h-screen/2
         [@media(max-height:608px)]:min-h-[180px]
         [@media(max-height:608px)]:max-h-[200px]
+        shadow-xl
+        backdrop-blur-sm
+        border border-indigo-50
       `}>
         <div className="absolute inset-0">
           <div
             className={`
             absolute inset-[3px] 
-            border-[3px] border-dashed rounded-lg
-            ${isDragActive ? 'border-blue-400' : 'border-blue-200'}
-            group-hover:border-blue-300
+            border-[3px] border-dashed rounded-xl
+            ${isDragActive ? 'border-indigo-400' : 'border-indigo-200'}
+            group-hover:border-indigo-300
             transition-colors duration-300
           `}
           />
@@ -139,44 +88,44 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
 
             <div
               className={`
-              mx-auto w-12 h-12
-              sm:w-14 sm:h-14
-              md:w-16 md:h-16 
-              lg:w-20 lg:h-20
-              [@media(max-height:608px)]:w-10
-              [@media(max-height:608px)]:h-10
-              ${isDragActive ? 'bg-blue-500' : 'bg-blue-600'} 
-              rounded-full flex items-center justify-center 
+              mx-auto w-16 h-16
+              sm:w-20 sm:h-20
+              md:w-24 md:h-24 
+              lg:w-28 lg:h-28
+              [@media(max-height:608px)]:w-14
+              [@media(max-height:608px)]:h-14
+              ${isDragActive ? 'bg-indigo-500' : 'bg-gradient-to-r from-indigo-600 to-purple-600'} 
+              rounded-2xl flex items-center justify-center 
               shadow-lg transform transition-all duration-300
               ${isDragActive ? 'scale-110' : 'scale-100'}
-              group-hover:shadow-blue-200/50
+              group-hover:shadow-indigo-200/50
               relative z-10
             `}>
               {isProcessing ? (
-                <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 [@media(max-height:608px)]:h-5 [@media(max-height:608px)]:w-5 text-white animate-spin" />
+                <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 [@media(max-height:608px)]:h-6 [@media(max-height:608px)]:w-6 text-white animate-spin" />
               ) : uploadedFile ? (
-                <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 [@media(max-height:608px)]:h-5 [@media(max-height:608px)]:w-5 text-white" />
+                <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 [@media(max-height:608px)]:h-6 [@media(max-height:608px)]:w-6 text-white" />
               ) : (
-                <Upload className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 [@media(max-height:608px)]:h-5 [@media(max-height:608px)]:w-5 text-white" />
+                <Upload className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 [@media(max-height:608px)]:h-6 [@media(max-height:608px)]:w-6 text-white" />
               )}
             </div>
 
             {uploadedFile ? (
               <div className="space-y-2 [@media(max-height:608px)]:space-y-1 relative z-10">
-                <div className="flex items-center justify-center space-x-2 text-green-700">
+                <div className="flex items-center justify-center space-x-2 text-indigo-700">
                   <File className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 [@media(max-height:608px)]:h-3 [@media(max-height:608px)]:w-3" />
                   <span className="text-sm sm:text-base md:text-lg [@media(max-height:608px)]:text-xs font-medium">
                     {uploadedFile.name}
                   </span>
                 </div>
                 <p className="text-sm sm:text-base md:text-lg [@media(max-height:608px)]:text-xs text-gray-600">
-                  {isProcessing ? 'Processing document...' : 'Document uploaded successfully!'}
+                  {isProcessing ? 'Analyzing document...' : 'Document uploaded successfully!'}
                 </p>
               </div>
             ) : (
               <div className="space-y-3 [@media(max-height:608px)]:space-y-2 py-4 sm:py-6 md:py-8 [@media(max-height:608px)]:py-2 relative z-10">
-                <p className="text-lg sm:text-xl md:text-2xl [@media(max-height:608px)]:text-base font-semibold text-gray-700">
-                  {isDragActive ? 'Drop file here' : 'Drag and drop file here'}
+                <p className="text-lg sm:text-xl md:text-2xl [@media(max-height:608px)]:text-base font-semibold text-indigo-700">
+                  {isDragActive ? 'Release to analyze' : 'Drag and drop document here'}
                 </p>
                 <div className="flex flex-col items-center space-y-2 [@media(max-height:608px)]:space-y-1">
                   <p className="text-sm sm:text-base md:text-lg [@media(max-height:608px)]:text-xs text-gray-500">
@@ -185,8 +134,8 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
                   <Button
                     variant="outline"
                     disabled={isProcessing}
-                    className="text-sm sm:text-base md:text-lg [@media(max-height:608px)]:text-xs px-4 sm:px-6 md:px-8 py-2 sm:py-3 md:py-4 [@media(max-height:608px)]:py-1 [@media(max-height:608px)]:px-3 border-2 border-blue-300 text-blue-700 hover:bg-blue-100 transition-colors duration-300">
-                    Select File
+                    className="text-sm sm:text-base md:text-lg [@media(max-height:608px)]:text-xs px-6 py-3 border-2 border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition-colors duration-300 rounded-xl">
+                    Select Document
                   </Button>
                 </div>
               </div>
@@ -194,90 +143,6 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
           </div>
         </div>
       </div>
-
-      {error && (
-        <div className="p-4 md:p-6 bg-red-50 border-2 border-red-200 rounded-lg">
-          <p className="text-base md:text-lg text-red-700">{error}</p>
-        </div>
-      )}
-
-      {response && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-            <div className="flex flex-col space-y-3">
-              {/* Статус */}
-              <div className="flex items-center space-x-2">
-                {status === 'Processing completed successfully!' ? (
-                  <CheckCheck className="w-5 h-5 text-green-500" />
-                ) : status.includes('Error') ? (
-                  <AlertCircle className="w-5 h-5 text-red-500" />
-                ) : (
-                  <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
-                )}
-                <span
-                  className={`text-sm font-medium ${
-                    status === 'Processing completed successfully!'
-                      ? 'text-green-700'
-                      : status.includes('Error')
-                      ? 'text-red-700'
-                      : 'text-blue-700'
-                  }`}>
-                  {status}
-                </span>
-              </div>
-
-              {/* Время обработки */}
-              {processingTime && (
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <div className="text-sm">
-                    <span className="font-medium">Processing Time: </span>
-                    <span className="font-mono bg-gray-50 px-2 py-0.5 rounded">
-                      {(processingTime / 1000).toFixed(2)}s
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Информация о файле */}
-              {uploadedFile && (
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <File className="w-4 h-4" />
-                  <div className="text-sm">
-                    <span className="font-medium">File: </span>
-                    <span>{uploadedFile.name}</span>
-                    <span className="text-gray-400 ml-2">
-                      ({(uploadedFile.size / 1024).toFixed(1)} KB)
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="prose prose-blue prose-base md:prose-lg max-w-none mt-6 md:mt-8 p-6 md:p-8 bg-white rounded-lg shadow-md border border-gray-200">
-            <style jsx global>{`
-              .prose h1 {
-                font-size: 1.5em !important;
-                margin-top: 1.5em !important;
-              }
-              .prose h2 {
-                font-size: 1.3em !important;
-                margin-top: 1.4em !important;
-              }
-              .prose h3 {
-                font-size: 1.1em !important;
-                margin-top: 1.3em !important;
-              }
-              .prose h4 {
-                font-size: 1em !important;
-                margin-top: 1.2em !important;
-              }
-            `}</style>
-            <ReactMarkdown>{response}</ReactMarkdown>
-          </div>
-        </div>
-      )}
-    </section>
+    </div>
   )
 }
