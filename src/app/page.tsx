@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 
-import { Header } from './components/header'
 import { FileUpload } from './components/file-upload'
 import { AnalysisResult } from './components/analysis-result'
+import GeneticsLanding from '@/app/components/ZigzagSection/GeneticsLanding'
+import { Footer } from '@/app/components/Footer'
 
 export default function HomePage() {
   const [isProcessing, setIsProcessing] = useState(false)
@@ -63,8 +64,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="bg-[url('/images/bg2.jpg')] bg-repeat-y bg-cover bg-center">
-        <Header />
-
         <main className="container mx-auto px-4 py-6">
           <div className="max-w-4xl mx-auto">
             <FileUpload onFileUpload={handleFileUpload} isProcessing={isProcessing} />
@@ -80,6 +79,8 @@ export default function HomePage() {
           uploadedFile={uploadedFile}
         />
       </div>
+      <GeneticsLanding />
+      <Footer />
     </div>
   )
 }

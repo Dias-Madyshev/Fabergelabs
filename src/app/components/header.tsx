@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 export function Header() {
   return (
-    <header className="bg-gradient-to-r from-gray-50/90 via-purple-50/80 to-gray-50/90 backdrop-blur-md shadow-lg border-b border-purple-100">
+    <header className="bg-white shadow-lg border-b border-purple-100">
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -23,23 +23,23 @@ export function Header() {
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             <a
               href="#upload"
-              className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors">
-              <Upload className="h-4 w-4" />
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <Upload className="h-5 w-5" />
               <span className="font-medium">Upload</span>
             </a>
             <a
               href="#reports"
-              className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors">
-              <FileText className="h-4 w-4" />
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <FileText className="h-5 w-5" />
               <span className="font-medium">Reports</span>
             </a>
             <a
               href="#help"
-              className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors">
-              <MessageCircle className="h-4 w-4" />
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
+              <MessageCircle className="h-5 w-5" />
               <span className="font-medium">Help</span>
             </a>
           </nav>
