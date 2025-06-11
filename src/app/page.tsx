@@ -14,6 +14,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string>('')
   const [processingTime, setProcessingTime] = useState<number | null>(null)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
   const handleFileUpload = async (file: File) => {
     const startTime = Date.now()
@@ -21,6 +22,7 @@ export default function HomePage() {
     setUploadedFile(file)
     setStatus('File received, preparing to upload...')
     setError(null)
+    setPdfUrl(null)
 
     const formData = new FormData()
     formData.append('file', file)
@@ -33,29 +35,44 @@ export default function HomePage() {
       })
 
       setStatus('Processing file on server...')
-      let data
-      const text = await res.text()
-
-      try {
-        data = JSON.parse(text)
-      } catch (e) {
-        throw new Error('Server returned invalid data format')
-      }
 
       if (!res.ok) {
-        throw new Error(data.details || data.error || 'Error processing file')
+        const errorData = await res.json()
+        throw new Error(errorData.details || errorData.error || 'Error processing file')
+      }
+
+      // Проверяем тип контента
+      const contentType = res.headers.get('Content-Type')
+      if (contentType === 'application/pdf') {
+        // Создаем URL для PDF
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        setPdfUrl(url)
+        setResponse('Analysis completed. You can download the PDF report.')
+      } else {
+        // Обрабатываем JSON ответ (на случай ошибки)
+        const text = await res.text()
+        try {
+          const data = JSON.parse(text)
+          if (data.error) {
+            throw new Error(data.error)
+          }
+          setResponse(data.result || 'No response')
+        } catch (e) {
+          throw new Error('Server returned invalid data format')
+        }
       }
 
       const endTime = Date.now()
       setProcessingTime(endTime - startTime)
       setStatus('Processing completed successfully!')
-      setResponse(data.result || 'No response')
     } catch (error) {
       setError(
         error instanceof Error ? error.message : 'An error occurred while processing the file',
       )
       setResponse('')
       setStatus('Error occurred during processing')
+      setPdfUrl(null)
     } finally {
       setIsProcessing(false)
     }
@@ -66,7 +83,11 @@ export default function HomePage() {
       <div className="bg-[url('/images/bg2.jpg')] bg-repeat-y bg-cover bg-center">
         <main className="container mx-auto px-4 py-6">
           <div className="max-w-4xl mx-auto">
-            <FileUpload onFileUpload={handleFileUpload} isProcessing={isProcessing} />
+            <FileUpload
+              onFileUpload={handleFileUpload}
+              isProcessing={isProcessing}
+              pdfUrl={pdfUrl}
+            />
           </div>
         </main>
       </div>

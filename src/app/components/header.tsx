@@ -25,18 +25,6 @@ export function Header() {
 
           <nav className="hidden md:flex items-center space-x-6">
             <a
-              href="#upload"
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
-              <Upload className="h-5 w-5" />
-              <span className="font-medium">Upload</span>
-            </a>
-            <a
-              href="#reports"
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
-              <FileText className="h-5 w-5" />
-              <span className="font-medium">Reports</span>
-            </a>
-            <a
               href="#help"
               className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 transition-all duration-300 shadow-md hover:shadow-lg">
               <MessageCircle className="h-5 w-5" />

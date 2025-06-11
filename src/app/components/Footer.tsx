@@ -20,21 +20,6 @@ export const Footer = () => {
             Contact Us
           </button>
         </div>
-
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-          <div>
-            <div className="text-3xl font-bold text-white">1000+</div>
-            <div className="text-purple-100">Research Projects</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-white">50+</div>
-            <div className="text-purple-100">Laboratories</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-white">99.9%</div>
-            <div className="text-purple-100">Accuracy</div>
-          </div>
-        </div>
       </div>
     </section>
   )

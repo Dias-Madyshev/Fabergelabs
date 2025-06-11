@@ -2,15 +2,16 @@
 
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, File, CheckCircle, Loader2 } from 'lucide-react'
+import { Upload, File, CheckCircle, Loader2, Download, RefreshCw } from 'lucide-react'
 import { Button } from './ui/button'
 
 interface FileUploadProps {
   onFileUpload: (file: File) => void
   isProcessing: boolean
+  pdfUrl: string | null
 }
 
-export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
+export function FileUpload({ onFileUpload, isProcessing, pdfUrl }: FileUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
   const onDrop = useCallback(
@@ -23,6 +24,16 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
     },
     [onFileUpload],
   )
+
+  const handleDownload = () => {
+    if (pdfUrl) {
+      window.open(pdfUrl, '_blank')
+    }
+  }
+
+  const handleReset = () => {
+    setUploadedFile(null)
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -121,6 +132,24 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
                 <p className="text-sm sm:text-base md:text-lg [@media(max-height:608px)]:text-xs text-gray-600">
                   {isProcessing ? 'Analyzing document...' : 'Document uploaded successfully!'}
                 </p>
+                {!isProcessing && (
+                  <div className="flex items-center justify-center space-x-4 mt-4">
+                    {pdfUrl && (
+                      <Button
+                        onClick={handleDownload}
+                        className="flex items-center space-x-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                        <Download className="h-4 w-4" />
+                        <span>Download Analysis</span>
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleReset}
+                      className="flex items-center space-x-2 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300">
+                      <RefreshCw className="h-4 w-4" />
+                      <span>Upload New Document</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3 [@media(max-height:608px)]:space-y-2 py-4 sm:py-6 md:py-8 [@media(max-height:608px)]:py-2 relative z-10">
