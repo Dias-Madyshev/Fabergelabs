@@ -133,20 +133,22 @@ export function FileUpload({ onFileUpload, isProcessing, pdfUrl }: FileUploadPro
                   {isProcessing ? 'Analyzing document...' : 'Document uploaded successfully!'}
                 </p>
                 {!isProcessing && (
-                  <div className="flex items-center justify-center space-x-4 mt-4">
+                  <div className="flex items-center justify-center space-x-2 sm:space-x-4 mt-4">
                     {pdfUrl && (
                       <Button
                         onClick={handleDownload}
-                        className="flex items-center space-x-2 bg-indigo-600 text-white hover:bg-indigo-700">
-                        <Download className="h-4 w-4" />
-                        <span>Download Analysis</span>
+                        className="flex items-center space-x-1 sm:space-x-2 bg-indigo-600 text-white hover:bg-indigo-700 text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
+                        <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Download Analysis</span>
+                        <span className="sm:hidden">Download</span>
                       </Button>
                     )}
                     <Button
                       onClick={handleReset}
-                      className="flex items-center space-x-2 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300">
-                      <RefreshCw className="h-4 w-4" />
-                      <span>Upload New Document</span>
+                      className="flex items-center space-x-1 sm:space-x-2 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 text-xs sm:text-sm px-2 py-1 sm:px-4 sm:py-2">
+                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Upload New Document</span>
+                      <span className="sm:hidden">New Doc</span>
                     </Button>
                   </div>
                 )}
