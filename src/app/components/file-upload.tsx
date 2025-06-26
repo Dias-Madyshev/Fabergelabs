@@ -49,7 +49,7 @@ export function FileUpload({ onFileUpload, isProcessing, pdfUrl }: FileUploadPro
   })
 
   return (
-    <div className="relative space-y-8 pt-8">
+    <div className="relative space-y-8 pt-8 gradient-to-r">
       <div className="relative text-center space-y-3 p-8 rounded-2xl bg-white/80 backdrop-blur-sm shadow-xl border border-indigo-50">
         <div className="relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">

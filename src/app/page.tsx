@@ -91,7 +91,7 @@ export default function HomePage() {
           </div>
         </main>
       </div>
-      <div className="container mx-auto px-4 sm:px-6 py-6">
+      <div className="container mx-auto px-4 sm:px-6 py-6 bg-gradient-to-r from-purple-600 to-indigo-600 ">
         <AnalysisResult
           response={response}
           status={status}
